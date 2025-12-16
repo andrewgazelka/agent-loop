@@ -121,6 +121,7 @@ async function runAgent(prompt: string, cwd: string, model: string, verbose: boo
         allowDangerouslySkipPermissions: true,
         persistSession: false, // Don't persist/resume sessions - each run is fresh
         sandbox: { enabled: false }, // Disable sandboxing - run in actual cwd
+        settingSources: [], // Don't load any settings files - full SDK isolation
         allowedTools: [
           "Read",
           "Write",
