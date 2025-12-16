@@ -6,6 +6,10 @@
   <code>bun run ~/Projects/agent-loop/src/index.ts "Build a REST API"</code>
 </p>
 
+<p align="center">
+  <a href="https://www.nushell.sh/"><img src="https://img.shields.io/badge/Nushell-4E9A06?style=flat&logo=nushell&logoColor=white" alt="Nushell"></a>
+</p>
+
 Long-running agent harness for complex coding tasks using the Claude Agent SDK.
 
 ## How It Works
@@ -26,10 +30,6 @@ Three-phase approach:
 - **Session bridging** - Progress files let each new context window pick up where the last left off
 - **Clean state guarantee** - Every session ends with committed, working code
 - **Automatic verification** - Features only marked complete after full end-to-end testing
-
-## Requirements
-
-- [![Nushell](https://img.shields.io/badge/Nushell-4E9A06?style=flat&logo=nushell&logoColor=white)](https://www.nushell.sh/) - Shell operations via MCP (Bash is disabled)
 
 ## Usage
 
