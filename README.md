@@ -18,6 +18,8 @@ Three-phase approach:
 2. **Planner agent** - Explores codebase and creates `plan.md` with detailed implementation strategy
 3. **Coder agent** - Implements the plan and marks features as passing
 
+> **Note:** The original Anthropic research uses a two-phase approach (Initializer → Coder). We added a separate Planner phase to force codebase exploration before implementation, which may help prevent "one-shotting". This is experimental.
+
 ## Features
 
 - **Incremental progress** - Works on exactly one feature per session, preventing scope creep
