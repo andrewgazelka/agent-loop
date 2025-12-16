@@ -199,7 +199,8 @@ All file paths should be relative to ${cwd} or absolute paths starting with ${cw
 When you run 'pwd', it should show ${cwd}.
 Do NOT use paths like /home/user/repos/ - those are incorrect.`,
         },
-        tools: { type: "preset", preset: "claude_code" }, // Use all Claude Code tools including WebSearch
+        tools: { type: "preset", preset: "claude_code" },
+        disallowedTools: ["Bash"], // Force nushell MCP instead of Bash
         mcpServers: {
           nu: {
             type: "stdio",

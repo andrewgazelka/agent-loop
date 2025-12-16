@@ -12,10 +12,11 @@ Long-running agent harness for complex coding tasks using the Claude Agent SDK.
 
 Based on Anthropic's research on [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents).
 
-Two-phase approach:
+Three-phase approach:
 
 1. **Initializer agent** - Sets up `feature_list.json` with comprehensive features, `claude-progress.txt` for tracking, and `init.sh` for environment setup
-2. **Coding agent** - Makes incremental progress on one feature per session, leaving the codebase in a clean state
+2. **Planner agent** - Explores codebase and creates `plan.md` with detailed implementation strategy
+3. **Coder agent** - Implements the plan and marks features as passing
 
 ## Features
 
@@ -23,6 +24,10 @@ Two-phase approach:
 - **Session bridging** - Progress files let each new context window pick up where the last left off
 - **Clean state guarantee** - Every session ends with committed, working code
 - **Automatic verification** - Features only marked complete after full end-to-end testing
+
+## Requirements
+
+- [nushell](https://www.nushell.sh/) (`nu`) - Used for shell operations via MCP
 
 ## Usage
 
