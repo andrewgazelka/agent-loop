@@ -122,6 +122,16 @@ async function runAgent(prompt: string, cwd: string, model: string, verbose: boo
         persistSession: false, // Don't persist/resume sessions - each run is fresh
         sandbox: { enabled: false }, // Disable sandboxing - run in actual cwd
         settingSources: [], // Don't load any settings files - full SDK isolation
+        systemPrompt: `You are a coding assistant working in a project directory.
+
+Working directory: ${cwd}
+
+IMPORTANT: All file paths should be relative to ${cwd} or absolute paths starting with ${cwd}.
+When you run 'pwd', it should show ${cwd}.
+Do NOT use paths like /home/user/repos/ - those are incorrect.
+
+You have access to tools for reading, writing, editing files, running bash commands, and searching.
+Be thorough and complete tasks fully.`,
         allowedTools: [
           "Read",
           "Write",
