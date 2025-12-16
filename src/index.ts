@@ -99,39 +99,45 @@ function getProgress(features: FeatureList): {
   return { passing, total };
 }
 
-async function runAgent(prompt: string, cwd: string): Promise<void> {
+async function runAgent(prompt: string, cwd: string): Promise<boolean> {
   console.log("\n--- Agent session starting ---\n");
 
-  for await (const message of query({
-    prompt,
-    options: {
-      cwd,
-      permissionMode: "bypassPermissions",
-      allowedTools: [
-        "Read",
-        "Write",
-        "Edit",
-        "Bash",
-        "Glob",
-        "Grep",
-        "WebSearch",
-        "WebFetch",
-      ],
-    },
-  })) {
-    // Handle different message types
-    if (message.type === "assistant") {
-      if ("content" in message && typeof message.content === "string") {
-        process.stdout.write(message.content);
-      }
-    } else if (message.type === "result") {
-      if (message.subtype === "error_during_execution") {
-        console.error("\nAgent error:", message);
+  try {
+    for await (const message of query({
+      prompt,
+      options: {
+        cwd,
+        permissionMode: "bypassPermissions",
+        allowedTools: [
+          "Read",
+          "Write",
+          "Edit",
+          "Bash",
+          "Glob",
+          "Grep",
+          "WebSearch",
+          "WebFetch",
+        ],
+      },
+    })) {
+      // Handle different message types
+      if (message.type === "assistant") {
+        if ("content" in message && typeof message.content === "string") {
+          process.stdout.write(message.content);
+        }
+      } else if (message.type === "result") {
+        if (message.subtype === "error_during_execution") {
+          console.error("\nAgent error:", message);
+        }
       }
     }
+    console.log("\n--- Agent session ended ---\n");
+    return true;
+  } catch (error) {
+    console.error("\n--- Agent session failed ---");
+    console.error("Error:", error instanceof Error ? error.message : error);
+    return false;
   }
-
-  console.log("\n--- Agent session ended ---\n");
 }
 
 async function notify(message: string, title: string): Promise<void> {
@@ -158,15 +164,22 @@ async function main(): Promise<void> {
     );
 
     const featureList = readFeatureList(options.dir);
+    let success: boolean;
 
     if (featureList === null) {
       // First run - use initializer agent
       console.log("\x1b[33mInitializing project...\x1b[0m");
-      await runAgent(getInitializerPrompt(options.projectSpec), options.dir);
+      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir);
     } else {
       // Subsequent runs - use coding agent
       console.log("\x1b[32mContinuing progress...\x1b[0m");
-      await runAgent(getCoderPrompt(), options.dir);
+      success = await runAgent(getCoderPrompt(), options.dir);
+    }
+
+    if (!success) {
+      console.log("\x1b[33mSession failed, retrying after delay...\x1b[0m");
+      await Bun.sleep(5000);
+      continue;
     }
 
     // Check progress after session
