@@ -232,13 +232,19 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
           break;
 
         case "user":
-          if (message.tool_use_result !== undefined) {
-            const resultStr = typeof message.tool_use_result === "string"
-              ? message.tool_use_result
-              : JSON.stringify(message.tool_use_result);
-            const maxLen = verbose ? 2000 : 500;
-            const truncated = resultStr.length > maxLen ? resultStr.slice(0, maxLen) + "..." : resultStr;
-            console.log(pc.dim(truncated));
+          // Tool results come back as user messages with content array
+          if (message.message?.content) {
+            for (const block of message.message.content) {
+              if (block.type === "tool_result") {
+                const content = block.content;
+                const resultStr = typeof content === "string"
+                  ? content
+                  : JSON.stringify(content);
+                const maxLen = verbose ? 2000 : 500;
+                const truncated = resultStr.length > maxLen ? resultStr.slice(0, maxLen) + "..." : resultStr;
+                console.log(pc.dim(truncated));
+              }
+            }
           }
           break;
 
