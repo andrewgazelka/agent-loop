@@ -247,10 +247,12 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
         case "user":
           // Tool results come back as user messages
           if (message.tool_use_result !== undefined) {
-            if (verbose) {
-              const resultStr = JSON.stringify(message.tool_use_result);
-              console.log(`\x1b[90m[tool result] ${resultStr.slice(0, 200)}${resultStr.length > 200 ? "..." : ""}\x1b[0m`);
-            }
+            const resultStr = typeof message.tool_use_result === "string"
+              ? message.tool_use_result
+              : JSON.stringify(message.tool_use_result);
+            const maxLen = verbose ? 2000 : 500;
+            const truncated = resultStr.length > maxLen ? resultStr.slice(0, maxLen) + "..." : resultStr;
+            console.log(`\x1b[90m${truncated}\x1b[0m`);
           }
           break;
 
