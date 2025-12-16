@@ -32,6 +32,7 @@ interface Options {
   dir: string;
   maxSessions: number;
   verbose: boolean;
+  model: string;
 }
 
 function parseCliArgs(): Options {
@@ -40,6 +41,7 @@ function parseCliArgs(): Options {
     options: {
       dir: { type: "string", short: "d", default: "." },
       "max-sessions": { type: "string", short: "n", default: "50" },
+      model: { type: "string", short: "m", default: "claude-opus-4-20250514" },
       verbose: { type: "boolean", short: "v", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -60,6 +62,7 @@ Arguments:
 
 Options:
   -d, --dir <path>           Project directory to work in (default: ".")
+  -m, --model <model>        Model to use (default: "claude-opus-4-20250514")
   -n, --max-sessions <num>   Maximum number of sessions to run (default: 50)
   -v, --verbose              Enable verbose logging (show all SDK events)
   -h, --help                 Show this help message
@@ -68,7 +71,7 @@ Examples:
   agent-loop "Build a REST API with user authentication"
   agent-loop "Create a CLI tool for parsing CSV files" -d ./my-project
   agent-loop "Implement a todo app with React" -n 100
-  agent-loop "Fix bugs" -v  # verbose mode for debugging
+  agent-loop "Fix bugs" -m claude-sonnet-4-5-20250929  # use Sonnet
 `);
     process.exit(values.help ? 0 : 1);
   }
@@ -78,6 +81,7 @@ Examples:
     dir: resolve(values.dir as string),
     maxSessions: parseInt(values["max-sessions"] as string, 10),
     verbose: values.verbose as boolean,
+    model: values.model as string,
   };
 }
 
@@ -104,7 +108,7 @@ function getProgress(features: FeatureList): {
   return { passing, total };
 }
 
-async function runAgent(prompt: string, cwd: string, verbose: boolean): Promise<boolean> {
+async function runAgent(prompt: string, cwd: string, model: string, verbose: boolean): Promise<boolean> {
   console.log("\n--- Agent session starting ---\n");
 
   try {
@@ -112,6 +116,7 @@ async function runAgent(prompt: string, cwd: string, verbose: boolean): Promise<
       prompt,
       options: {
         cwd,
+        model,
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         allowedTools: [
@@ -226,6 +231,7 @@ async function main(): Promise<void> {
 
   console.log(`\x1b[36m=== Agent Loop Starting ===\x1b[0m`);
   console.log(`Directory: ${options.dir}`);
+  console.log(`Model: ${options.model}`);
   console.log(`Max sessions: ${options.maxSessions}`);
   if (options.verbose) {
     console.log(`Verbose mode: enabled`);
@@ -242,11 +248,11 @@ async function main(): Promise<void> {
     if (featureList === null) {
       // First run - use initializer agent
       console.log("\x1b[33mInitializing project...\x1b[0m");
-      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir, options.verbose);
+      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir, options.model, options.verbose);
     } else {
       // Subsequent runs - use coding agent
       console.log("\x1b[32mContinuing progress...\x1b[0m");
-      success = await runAgent(getCoderPrompt(), options.dir, options.verbose);
+      success = await runAgent(getCoderPrompt(), options.dir, options.model, options.verbose);
     }
 
     if (!success) {
