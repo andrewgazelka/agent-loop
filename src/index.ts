@@ -15,6 +15,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { parseArgs } from "util";
+import pc from "picocolors";
 import { getInitializerPrompt } from "./prompts/initializer.ts";
 import { getPlannerPrompt } from "./prompts/planner.ts";
 import { getCoderPrompt } from "./prompts/coder.ts";
@@ -154,25 +155,14 @@ function getPromptForPhase(phase: AgentPhase, projectSpec: string): string {
   }
 }
 
-function getPhaseColor(phase: AgentPhase): string {
+function formatPhase(phase: AgentPhase): string {
   switch (phase) {
     case "initializer":
-      return "\x1b[33m"; // Yellow
+      return pc.yellow(`[${phase}] Initializing project...`);
     case "planner":
-      return "\x1b[35m"; // Magenta
+      return pc.magenta(`[${phase}] Planning next feature...`);
     case "coder":
-      return "\x1b[32m"; // Green
-  }
-}
-
-function getPhaseLabel(phase: AgentPhase): string {
-  switch (phase) {
-    case "initializer":
-      return "Initializing project...";
-    case "planner":
-      return "Planning next feature...";
-    case "coder":
-      return "Implementing plan...";
+      return pc.green(`[${phase}] Implementing plan...`);
   }
 }
 
@@ -208,29 +198,26 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
             args: ["--mcp"],
           },
         },
-        stderr: verbose ? (data) => console.error(`\x1b[90m[stderr] ${data}\x1b[0m`) : undefined,
+        stderr: verbose ? (data) => console.error(pc.dim(`[stderr] ${data}`)) : undefined,
       },
     })) {
       // In verbose mode, log all message types
       if (verbose) {
-        console.log(`\x1b[90m[message] type=${message.type}${
-          "subtype" in message ? ` subtype=${message.subtype}` : ""
-        }\x1b[0m`);
+        console.log(pc.dim(`[message] type=${message.type}${"subtype" in message ? ` subtype=${message.subtype}` : ""}`));
       }
 
       // Handle different message types based on SDK types
       switch (message.type) {
         case "system":
           if (message.subtype === "init") {
-            console.log(`\x1b[90m[system] Session ${message.session_id} initialized\x1b[0m`);
-            console.log(`\x1b[90m[system] Model: ${message.model}, Tools: ${message.tools.length}\x1b[0m`);
+            console.log(pc.dim(`[system] Session ${message.session_id} initialized`));
+            console.log(pc.dim(`[system] Model: ${message.model}, Tools: ${message.tools.length}`));
           } else if (verbose) {
-            console.log(`\x1b[90m[system] ${message.subtype}\x1b[0m`);
+            console.log(pc.dim(`[system] ${message.subtype}`));
           }
           break;
 
         case "assistant":
-          // APIAssistantMessage has content as an array of content blocks
           if (message.message?.content) {
             for (const block of message.message.content) {
               if (block.type === "text") {
@@ -238,29 +225,28 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
               } else if (block.type === "tool_use") {
                 const inputStr = JSON.stringify(block.input);
                 const truncated = inputStr.length > 200 ? inputStr.slice(0, 200) + "..." : inputStr;
-                console.log(`\n\x1b[33m[tool] ${block.name}\x1b[0m \x1b[90m${truncated}\x1b[0m`);
+                console.log(`\n${pc.yellow(`[tool] ${block.name}`)} ${pc.dim(truncated)}`);
               }
             }
           }
           break;
 
         case "user":
-          // Tool results come back as user messages
           if (message.tool_use_result !== undefined) {
             const resultStr = typeof message.tool_use_result === "string"
               ? message.tool_use_result
               : JSON.stringify(message.tool_use_result);
             const maxLen = verbose ? 2000 : 500;
             const truncated = resultStr.length > maxLen ? resultStr.slice(0, maxLen) + "..." : resultStr;
-            console.log(`\x1b[90m${truncated}\x1b[0m`);
+            console.log(pc.dim(truncated));
           }
           break;
 
         case "result":
           if (message.subtype === "success") {
-            console.log(`\n\x1b[32m[result] Success - ${message.num_turns} turns, $${message.total_cost_usd.toFixed(4)}\x1b[0m`);
+            console.log(`\n${pc.green(`[result] Success - ${message.num_turns} turns, $${message.total_cost_usd.toFixed(4)}`)}`);
           } else {
-            console.error(`\n\x1b[31m[result] Error: ${message.subtype}\x1b[0m`);
+            console.error(`\n${pc.red(`[result] Error: ${message.subtype}`)}`);
             if ("errors" in message) {
               for (const err of message.errors) {
                 console.error(`  ${err}`);
@@ -271,14 +257,13 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
 
         case "tool_progress":
           if (verbose) {
-            console.log(`\x1b[90m[progress] ${message.tool_name} (${message.elapsed_time_seconds.toFixed(1)}s)\x1b[0m`);
+            console.log(pc.dim(`[progress] ${message.tool_name} (${message.elapsed_time_seconds.toFixed(1)}s)`));
           }
           break;
 
         case "stream_event":
-          // Streaming events (partial messages) - only log in verbose mode
           if (verbose) {
-            console.log(`\x1b[90m[stream] ${message.event.type}\x1b[0m`);
+            console.log(pc.dim(`[stream] ${message.event.type}`));
           }
           break;
       }
@@ -309,31 +294,27 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`\x1b[36m=== Agent Loop Starting ===\x1b[0m`);
+  console.log(pc.cyan("=== Agent Loop Starting ==="));
   console.log(`Directory: ${options.dir}`);
   console.log(`Model: ${options.model}`);
   console.log(`Max sessions: ${options.maxSessions}`);
   if (options.verbose) {
-    console.log(`Verbose mode: enabled`);
+    console.log("Verbose mode: enabled");
   }
 
   for (let session = 1; session <= options.maxSessions; session++) {
-    console.log(
-      `\n\x1b[36m=== Session ${session}/${options.maxSessions} ===\x1b[0m`
-    );
+    console.log(`\n${pc.cyan(`=== Session ${session}/${options.maxSessions} ===`)}`);
 
     // Determine which phase to run
     const phase = determinePhase(options.dir);
-    const color = getPhaseColor(phase);
-    const label = getPhaseLabel(phase);
     const prompt = getPromptForPhase(phase, options.projectSpec);
 
-    console.log(`${color}[${phase}] ${label}\x1b[0m`);
+    console.log(formatPhase(phase));
 
     const success = await runAgent(prompt, options.dir, options.model, options.verbose);
 
     if (!success) {
-      console.log("\x1b[33mSession failed, retrying after delay...\x1b[0m");
+      console.log(pc.yellow("Session failed, retrying after delay..."));
       await Bun.sleep(5000);
       continue;
     }
@@ -342,12 +323,10 @@ async function main(): Promise<void> {
     const featureList = readFeatureList(options.dir);
     if (featureList !== null) {
       const { passing, total } = getProgress(featureList);
-      console.log(
-        `\x1b[34mProgress: ${passing}/${total} features passing\x1b[0m`
-      );
+      console.log(pc.blue(`Progress: ${passing}/${total} features passing`));
 
       if (passing === total) {
-        console.log("\x1b[32mAll features complete!\x1b[0m");
+        console.log(pc.green("All features complete!"));
         await notify("Agent loop complete", "All features passing");
         break;
       }
@@ -357,7 +336,7 @@ async function main(): Promise<void> {
     await Bun.sleep(2000);
   }
 
-  console.log("\x1b[36m=== Agent loop finished ===\x1b[0m");
+  console.log(pc.cyan("=== Agent loop finished ==="));
 }
 
 main().catch((error) => {
