@@ -6,7 +6,7 @@
  * https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
  *
  * Three-phase approach:
- * 1. Initializer agent: Sets up feature_list.json, progress tracking, and init.sh
+ * 1. Initializer agent: Sets up feature_list.json, progress tracking, and init.nu
  * 2. Planner agent: Creates implementation plan (plan.md) for the next feature
  * 3. Coder agent: Implements the plan and marks features as passing
  */
@@ -73,7 +73,7 @@ Options:
   -h, --help                 Show this help message
 
 Three-Phase Approach:
-  1. Initializer - Creates feature_list.json, init.sh, claude-progress.txt
+  1. Initializer - Creates feature_list.json, init.nu, claude-progress.txt
   2. Planner     - Explores codebase and creates plan.md for next feature
   3. Coder       - Implements the plan and marks feature as passing
 

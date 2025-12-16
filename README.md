@@ -14,7 +14,7 @@ Based on Anthropic's research on [Effective harnesses for long-running agents](h
 
 Three-phase approach:
 
-1. **Initializer agent** - Sets up `feature_list.json` with comprehensive features, `claude-progress.txt` for tracking, and `init.sh` for environment setup
+1. **Initializer agent** - Sets up `feature_list.json` with comprehensive features, `claude-progress.txt` for tracking, and `init.nu` for environment setup
 2. **Planner agent** - Explores codebase and creates `plan.md` with detailed implementation strategy
 3. **Coder agent** - Implements the plan and marks features as passing
 

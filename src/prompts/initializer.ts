@@ -5,7 +5,7 @@
  * The initializer agent:
  * 1. Sets up feature_list.json with comprehensive features from the spec
  * 2. Creates claude-progress.txt for progress tracking
- * 3. Creates init.sh for environment setup
+ * 3. Creates init.nu for environment setup (nushell script)
  * 4. Makes an initial git commit
  */
 export function getInitializerPrompt(projectSpec: string): string {
@@ -51,21 +51,21 @@ Create a progress tracking file with this format:
 ## Session 1 - [DATE]
 ### Initial Setup
 - Created feature_list.json with N features
-- Created init.sh
+- Created init.nu
 - Made initial commit
 
 ### Next Session Should:
 - Start with the highest priority feature
-- Run init.sh to set up the environment
+- Run init.nu to set up the environment
 \`\`\`
 
-### 3. Create init.sh
-Create an initialization script that:
+### 3. Create init.nu
+Create a nushell initialization script that:
 - Sets up any necessary environment (install dependencies, etc.)
 - Starts any required services (dev server, database, etc.)
 - Is idempotent (safe to run multiple times)
 
-Make it executable with appropriate comments.
+Use nushell syntax (not bash). Make it executable with appropriate comments.
 
 ### 4. Make Initial Git Commit
 After creating these files:
@@ -83,7 +83,7 @@ After creating these files:
 - **DO NOT use WebSearch** - work only with the project spec and existing codebase
 - **DO NOT spawn Task agents** - do all work directly yourself
 - **DO NOT do research** - just create the environment files based on the spec
-- **FOCUS** - your only job is to create feature_list.json, claude-progress.txt, init.sh, and commit
+- **FOCUS** - your only job is to create feature_list.json, claude-progress.txt, init.nu, and commit
 
 Start by briefly exploring the project directory structure, then create the files.`;
 }

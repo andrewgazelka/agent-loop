@@ -21,7 +21,7 @@ Before planning, complete these steps in order:
    - Read \`feature_list.json\` to understand the feature requirements
 
 2. **Verify Environment**
-   - Run \`./init.sh\` if it exists to ensure the environment is set up
+   - Run \`nu init.nu\` if it exists to ensure the environment is set up
    - Do a basic smoke test to ensure the project compiles/runs
 
 3. **Choose Your Feature**

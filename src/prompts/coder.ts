@@ -26,7 +26,7 @@ Before doing anything else, complete these steps in order:
    - Follow the plan step-by-step
 
 3. **Verify Environment**
-   - Run \`./init.sh\` if it exists to start the dev environment
+   - Run \`nu init.nu\` if it exists to start the dev environment
    - Do a basic smoke test to ensure the app/project is in a working state
    - If something is broken, fix it BEFORE starting new work
 
