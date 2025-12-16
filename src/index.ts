@@ -41,7 +41,7 @@ function parseCliArgs(): Options {
     options: {
       dir: { type: "string", short: "d", default: "." },
       "max-sessions": { type: "string", short: "n", default: "50" },
-      model: { type: "string", short: "m", default: "claude-opus-4-20250514" },
+      model: { type: "string", short: "m", default: "claude-opus-4-5-20251101" },
       verbose: { type: "boolean", short: "v", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -62,7 +62,7 @@ Arguments:
 
 Options:
   -d, --dir <path>           Project directory to work in (default: ".")
-  -m, --model <model>        Model to use (default: "claude-opus-4-20250514")
+  -m, --model <model>        Model to use (default: "claude-opus-4-5-20251101")
   -n, --max-sessions <num>   Maximum number of sessions to run (default: 50)
   -v, --verbose              Enable verbose logging (show all SDK events)
   -h, --help                 Show this help message
