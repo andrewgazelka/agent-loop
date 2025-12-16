@@ -31,6 +31,7 @@ interface Options {
   projectSpec: string;
   dir: string;
   maxSessions: number;
+  verbose: boolean;
 }
 
 function parseCliArgs(): Options {
@@ -39,6 +40,7 @@ function parseCliArgs(): Options {
     options: {
       dir: { type: "string", short: "d", default: "." },
       "max-sessions": { type: "string", short: "n", default: "50" },
+      verbose: { type: "boolean", short: "v", default: false },
       help: { type: "boolean", short: "h", default: false },
     },
     allowPositionals: true,
@@ -59,12 +61,14 @@ Arguments:
 Options:
   -d, --dir <path>           Project directory to work in (default: ".")
   -n, --max-sessions <num>   Maximum number of sessions to run (default: 50)
+  -v, --verbose              Enable verbose logging (show all SDK events)
   -h, --help                 Show this help message
 
 Examples:
   agent-loop "Build a REST API with user authentication"
   agent-loop "Create a CLI tool for parsing CSV files" -d ./my-project
   agent-loop "Implement a todo app with React" -n 100
+  agent-loop "Fix bugs" -v  # verbose mode for debugging
 `);
     process.exit(values.help ? 0 : 1);
   }
@@ -73,6 +77,7 @@ Examples:
     projectSpec: positionals.join(" "),
     dir: resolve(values.dir as string),
     maxSessions: parseInt(values["max-sessions"] as string, 10),
+    verbose: values.verbose as boolean,
   };
 }
 
@@ -99,7 +104,7 @@ function getProgress(features: FeatureList): {
   return { passing, total };
 }
 
-async function runAgent(prompt: string, cwd: string): Promise<boolean> {
+async function runAgent(prompt: string, cwd: string, verbose: boolean): Promise<boolean> {
   console.log("\n--- Agent session starting ---\n");
 
   try {
@@ -108,6 +113,7 @@ async function runAgent(prompt: string, cwd: string): Promise<boolean> {
       options: {
         cwd,
         permissionMode: "bypassPermissions",
+        allowDangerouslySkipPermissions: true,
         allowedTools: [
           "Read",
           "Write",
@@ -118,17 +124,78 @@ async function runAgent(prompt: string, cwd: string): Promise<boolean> {
           "WebSearch",
           "WebFetch",
         ],
+        stderr: verbose ? (data) => console.error(`\x1b[90m[stderr] ${data}\x1b[0m`) : undefined,
       },
     })) {
-      // Handle different message types
-      if (message.type === "assistant") {
-        if ("content" in message && typeof message.content === "string") {
-          process.stdout.write(message.content);
-        }
-      } else if (message.type === "result") {
-        if (message.subtype === "error_during_execution") {
-          console.error("\nAgent error:", message);
-        }
+      // In verbose mode, log all message types
+      if (verbose) {
+        console.log(`\x1b[90m[message] type=${message.type}${
+          "subtype" in message ? ` subtype=${message.subtype}` : ""
+        }\x1b[0m`);
+      }
+
+      // Handle different message types based on SDK types
+      switch (message.type) {
+        case "system":
+          if (message.subtype === "init") {
+            console.log(`\x1b[90m[system] Session ${message.session_id} initialized\x1b[0m`);
+            console.log(`\x1b[90m[system] Model: ${message.model}, Tools: ${message.tools.length}\x1b[0m`);
+          } else if (verbose) {
+            console.log(`\x1b[90m[system] ${message.subtype}\x1b[0m`);
+          }
+          break;
+
+        case "assistant":
+          // APIAssistantMessage has content as an array of content blocks
+          if (message.message?.content) {
+            for (const block of message.message.content) {
+              if (block.type === "text") {
+                process.stdout.write(block.text);
+              } else if (block.type === "tool_use") {
+                console.log(`\n\x1b[33m[tool] ${block.name}\x1b[0m`);
+                if (verbose) {
+                  console.log(`\x1b[90m[tool input] ${JSON.stringify(block.input).slice(0, 200)}...\x1b[0m`);
+                }
+              }
+            }
+          }
+          break;
+
+        case "user":
+          // Tool results come back as user messages
+          if (message.tool_use_result !== undefined) {
+            if (verbose) {
+              const resultStr = JSON.stringify(message.tool_use_result);
+              console.log(`\x1b[90m[tool result] ${resultStr.slice(0, 200)}${resultStr.length > 200 ? "..." : ""}\x1b[0m`);
+            }
+          }
+          break;
+
+        case "result":
+          if (message.subtype === "success") {
+            console.log(`\n\x1b[32m[result] Success - ${message.num_turns} turns, $${message.total_cost_usd.toFixed(4)}\x1b[0m`);
+          } else {
+            console.error(`\n\x1b[31m[result] Error: ${message.subtype}\x1b[0m`);
+            if ("errors" in message) {
+              for (const err of message.errors) {
+                console.error(`  ${err}`);
+              }
+            }
+          }
+          break;
+
+        case "tool_progress":
+          if (verbose) {
+            console.log(`\x1b[90m[progress] ${message.tool_name} (${message.elapsed_time_seconds.toFixed(1)}s)\x1b[0m`);
+          }
+          break;
+
+        case "stream_event":
+          // Streaming events (partial messages) - only log in verbose mode
+          if (verbose) {
+            console.log(`\x1b[90m[stream] ${message.event.type}\x1b[0m`);
+          }
+          break;
       }
     }
     console.log("\n--- Agent session ended ---\n");
@@ -136,6 +203,9 @@ async function runAgent(prompt: string, cwd: string): Promise<boolean> {
   } catch (error) {
     console.error("\n--- Agent session failed ---");
     console.error("Error:", error instanceof Error ? error.message : error);
+    if (verbose && error instanceof Error && error.stack) {
+      console.error("Stack:", error.stack);
+    }
     return false;
   }
 }
@@ -157,6 +227,9 @@ async function main(): Promise<void> {
   console.log(`\x1b[36m=== Agent Loop Starting ===\x1b[0m`);
   console.log(`Directory: ${options.dir}`);
   console.log(`Max sessions: ${options.maxSessions}`);
+  if (options.verbose) {
+    console.log(`Verbose mode: enabled`);
+  }
 
   for (let session = 1; session <= options.maxSessions; session++) {
     console.log(
@@ -169,11 +242,11 @@ async function main(): Promise<void> {
     if (featureList === null) {
       // First run - use initializer agent
       console.log("\x1b[33mInitializing project...\x1b[0m");
-      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir);
+      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir, options.verbose);
     } else {
       // Subsequent runs - use coding agent
       console.log("\x1b[32mContinuing progress...\x1b[0m");
-      success = await runAgent(getCoderPrompt(), options.dir);
+      success = await runAgent(getCoderPrompt(), options.dir, options.verbose);
     }
 
     if (!success) {
