@@ -29,7 +29,7 @@ Three-phase approach:
 
 ## Requirements
 
-- [nushell](https://www.nushell.sh/) (`nu`) - Used for shell operations via MCP
+- [![Nushell](https://img.shields.io/badge/Nushell-4E9A06?style=flat&logo=nushell&logoColor=white)](https://www.nushell.sh/) - Shell operations via MCP (Bash is disabled)
 
 ## Usage
 
