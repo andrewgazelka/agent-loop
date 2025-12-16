@@ -5,9 +5,10 @@
  * Based on Anthropic's "Effective harnesses for long-running agents" research:
  * https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
  *
- * Two-phase approach:
+ * Three-phase approach:
  * 1. Initializer agent: Sets up feature_list.json, progress tracking, and init.sh
- * 2. Coding agent: Makes incremental progress on one feature per session
+ * 2. Planner agent: Creates implementation plan (plan.md) for the next feature
+ * 3. Coder agent: Implements the plan and marks features as passing
  */
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
@@ -15,6 +16,7 @@ import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
 import { parseArgs } from "util";
 import { getInitializerPrompt } from "./prompts/initializer.ts";
+import { getPlannerPrompt } from "./prompts/planner.ts";
 import { getCoderPrompt } from "./prompts/coder.ts";
 
 interface FeatureList {
@@ -26,6 +28,8 @@ interface FeatureList {
     priority: number;
   }>;
 }
+
+type AgentPhase = "initializer" | "planner" | "coder";
 
 interface Options {
   projectSpec: string;
@@ -67,6 +71,11 @@ Options:
   -v, --verbose              Enable verbose logging (show all SDK events)
   -h, --help                 Show this help message
 
+Three-Phase Approach:
+  1. Initializer - Creates feature_list.json, init.sh, claude-progress.txt
+  2. Planner     - Explores codebase and creates plan.md for next feature
+  3. Coder       - Implements the plan and marks feature as passing
+
 Examples:
   agent-loop "Build a REST API with user authentication"
   agent-loop "Create a CLI tool for parsing CSV files" -d ./my-project
@@ -99,6 +108,10 @@ function readFeatureList(dir: string): FeatureList | null {
   }
 }
 
+function planExists(dir: string): boolean {
+  return existsSync(resolve(dir, "plan.md"));
+}
+
 function getProgress(features: FeatureList): {
   passing: number;
   total: number;
@@ -106,6 +119,61 @@ function getProgress(features: FeatureList): {
   const total = features.features.length;
   const passing = features.features.filter((f) => f.passes).length;
   return { passing, total };
+}
+
+/**
+ * Determine which agent phase to run based on project state.
+ *
+ * State machine:
+ * - No feature_list.json → Initializer
+ * - Has feature_list.json but no plan.md → Planner
+ * - Has feature_list.json and plan.md → Coder
+ */
+function determinePhase(dir: string): AgentPhase {
+  const featureList = readFeatureList(dir);
+
+  if (featureList === null) {
+    return "initializer";
+  }
+
+  if (planExists(dir)) {
+    return "coder";
+  }
+
+  return "planner";
+}
+
+function getPromptForPhase(phase: AgentPhase, projectSpec: string): string {
+  switch (phase) {
+    case "initializer":
+      return getInitializerPrompt(projectSpec);
+    case "planner":
+      return getPlannerPrompt();
+    case "coder":
+      return getCoderPrompt();
+  }
+}
+
+function getPhaseColor(phase: AgentPhase): string {
+  switch (phase) {
+    case "initializer":
+      return "\x1b[33m"; // Yellow
+    case "planner":
+      return "\x1b[35m"; // Magenta
+    case "coder":
+      return "\x1b[32m"; // Green
+  }
+}
+
+function getPhaseLabel(phase: AgentPhase): string {
+  switch (phase) {
+    case "initializer":
+      return "Initializing project...";
+    case "planner":
+      return "Planning next feature...";
+    case "coder":
+      return "Implementing plan...";
+  }
 }
 
 async function runAgent(prompt: string, cwd: string, model: string, verbose: boolean): Promise<boolean> {
@@ -251,18 +319,15 @@ async function main(): Promise<void> {
       `\n\x1b[36m=== Session ${session}/${options.maxSessions} ===\x1b[0m`
     );
 
-    const featureList = readFeatureList(options.dir);
-    let success: boolean;
+    // Determine which phase to run
+    const phase = determinePhase(options.dir);
+    const color = getPhaseColor(phase);
+    const label = getPhaseLabel(phase);
+    const prompt = getPromptForPhase(phase, options.projectSpec);
 
-    if (featureList === null) {
-      // First run - use initializer agent
-      console.log("\x1b[33mInitializing project...\x1b[0m");
-      success = await runAgent(getInitializerPrompt(options.projectSpec), options.dir, options.model, options.verbose);
-    } else {
-      // Subsequent runs - use coding agent
-      console.log("\x1b[32mContinuing progress...\x1b[0m");
-      success = await runAgent(getCoderPrompt(), options.dir, options.model, options.verbose);
-    }
+    console.log(`${color}[${phase}] ${label}\x1b[0m`);
+
+    const success = await runAgent(prompt, options.dir, options.model, options.verbose);
 
     if (!success) {
       console.log("\x1b[33mSession failed, retrying after delay...\x1b[0m");
@@ -271,9 +336,9 @@ async function main(): Promise<void> {
     }
 
     // Check progress after session
-    const updatedFeatures = readFeatureList(options.dir);
-    if (updatedFeatures !== null) {
-      const { passing, total } = getProgress(updatedFeatures);
+    const featureList = readFeatureList(options.dir);
+    if (featureList !== null) {
+      const { passing, total } = getProgress(featureList);
       console.log(
         `\x1b[34mProgress: ${passing}/${total} features passing\x1b[0m`
       );
