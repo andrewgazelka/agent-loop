@@ -157,10 +157,9 @@ async function runAgent(prompt: string, cwd: string, model: string, verbose: boo
               if (block.type === "text") {
                 process.stdout.write(block.text);
               } else if (block.type === "tool_use") {
-                console.log(`\n\x1b[33m[tool] ${block.name}\x1b[0m`);
-                if (verbose) {
-                  console.log(`\x1b[90m[tool input] ${JSON.stringify(block.input).slice(0, 200)}...\x1b[0m`);
-                }
+                const inputStr = JSON.stringify(block.input);
+                const truncated = inputStr.length > 200 ? inputStr.slice(0, 200) + "..." : inputStr;
+                console.log(`\n\x1b[33m[tool] ${block.name}\x1b[0m \x1b[90m${truncated}\x1b[0m`);
               }
             }
           }
