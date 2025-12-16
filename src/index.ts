@@ -132,6 +132,13 @@ When you run 'pwd', it should show ${cwd}.
 Do NOT use paths like /home/user/repos/ - those are incorrect.`,
         },
         tools: { type: "preset", preset: "claude_code" }, // Use all Claude Code tools including WebSearch
+        mcpServers: {
+          nu: {
+            type: "stdio",
+            command: "nu",
+            args: ["--mcp"],
+          },
+        },
         stderr: verbose ? (data) => console.error(`\x1b[90m[stderr] ${data}\x1b[0m`) : undefined,
       },
     })) {
