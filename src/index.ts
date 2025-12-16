@@ -190,7 +190,7 @@ When you run 'pwd', it should show ${cwd}.
 Do NOT use paths like /home/user/repos/ - those are incorrect.`,
         },
         tools: { type: "preset", preset: "claude_code" },
-        disallowedTools: ["Bash"], // Force nushell MCP instead of Bash
+        disallowedTools: ["Bash", "TodoWrite"], // Force nushell MCP, no todo tracking
         mcpServers: {
           nu: {
             type: "stdio",
