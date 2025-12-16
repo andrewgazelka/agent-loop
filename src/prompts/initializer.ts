@@ -79,5 +79,11 @@ After creating these files:
 - Each feature should be completable in a single session
 - DO NOT start implementing features - just set up the environment
 
-Start by exploring the project directory, then create these files.`;
+## Critical Constraints
+- **DO NOT use WebSearch** - work only with the project spec and existing codebase
+- **DO NOT spawn Task agents** - do all work directly yourself
+- **DO NOT do research** - just create the environment files based on the spec
+- **FOCUS** - your only job is to create feature_list.json, claude-progress.txt, init.sh, and commit
+
+Start by briefly exploring the project directory structure, then create the files.`;
 }

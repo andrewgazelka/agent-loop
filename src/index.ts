@@ -237,9 +237,29 @@ Do NOT use paths like /home/user/repos/ - those are incorrect.`,
             for (const block of message.message.content) {
               if (block.type === "tool_result") {
                 const content = block.content;
-                const resultStr = typeof content === "string"
+                let resultStr = typeof content === "string"
                   ? content
                   : JSON.stringify(content);
+
+                // Try to extract just the output from nushell MCP responses
+                // Format: {cwd:...,history_index:...,output:"..."}
+                try {
+                  if (resultStr.includes('"output"') || resultStr.includes('output:')) {
+                    const parsed = JSON.parse(resultStr);
+                    if (Array.isArray(parsed) && parsed[0]?.text) {
+                      // Handle [{type:"text", text:"..."}] format
+                      const inner = JSON.parse(parsed[0].text);
+                      if (inner.output !== undefined) {
+                        resultStr = inner.output || "(empty)";
+                      }
+                    } else if (parsed.output !== undefined) {
+                      resultStr = parsed.output || "(empty)";
+                    }
+                  }
+                } catch {
+                  // Keep original if parsing fails
+                }
+
                 const maxLen = verbose ? 2000 : 500;
                 const truncated = resultStr.length > maxLen ? resultStr.slice(0, maxLen) + "..." : resultStr;
                 console.log(pc.dim(truncated));
