@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <!-- Define the infinity loop path for motion -->
+    <path id="infinity" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100 M 130 100 C 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+  </defs>
+
+  <style>
+    /* Gentle pulse on the loop path */
+    @keyframes loop-pulse {
+      0%, 100% { stroke-opacity: 0.3; }
+      50% { stroke-opacity: 0.6; }
+    }
+
+    /* Particle glow */
+    @keyframes glow {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    .loop-bg {
+      fill: none;
+      stroke: #8b5cf6;
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-opacity: 0.15;
+    }
+
+    .loop-main {
+      fill: none;
+      stroke: #8b5cf6;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      animation: loop-pulse 3s ease-in-out infinite;
+    }
+
+    .particle {
+      animation: glow 1.5s ease-in-out infinite;
+    }
+
+    .title { fill: #1f2328; }
+    .subtitle { fill: #656d76; }
+
+    @media (prefers-color-scheme: dark) {
+      .title { fill: #ffffff; }
+      .subtitle { fill: #8b949e; }
+    }
+  </style>
+
+  <!-- Background glow loop -->
+  <path class="loop-bg" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100 C 130 100, 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+
+  <!-- Main infinity loop - figure 8 -->
+  <path class="loop-main" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100"/>
+  <path class="loop-main" d="M 130 100 C 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+
+  <!-- Animated particles on the loop -->
+  <circle class="particle" r="5" fill="#8b5cf6">
+    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto">
+      <mpath href="#infinity"/>
+    </animateMotion>
+  </circle>
+
+  <circle class="particle" r="4" fill="#a78bfa" style="animation-delay: 0.5s;">
+    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="0.6s">
+      <mpath href="#infinity"/>
+    </animateMotion>
+  </circle>
+
+  <circle class="particle" r="5" fill="#8b5cf6" style="animation-delay: 1s;">
+    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="1.2s">
+      <mpath href="#infinity"/>
+    </animateMotion>
+  </circle>
+
+  <circle class="particle" r="4" fill="#a78bfa" style="animation-delay: 1.5s;">
+    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="1.8s">
+      <mpath href="#infinity"/>
+    </animateMotion>
+  </circle>
+
+  <circle class="particle" r="5" fill="#8b5cf6" style="animation-delay: 2s;">
+    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="2.4s">
+      <mpath href="#infinity"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Title -->
+  <text class="title" x="240" y="90" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700">agent-loop</text>
+
+  <!-- Subtitle -->
+  <text class="subtitle" x="240" y="125" font-family="system-ui, -apple-system, sans-serif" font-size="18">Long-running harness for complex coding tasks</text>
+</svg>

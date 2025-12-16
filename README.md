@@ -1,10 +1,12 @@
-# agent-loop
+<p align="center">
+  <img src=".github/assets/header.svg" alt="agent-loop" width="100%"/>
+</p>
+
+<p align="center">
+  <code>bun run ~/Projects/agent-loop/src/index.ts "Build a REST API"</code>
+</p>
 
 Long-running agent harness for complex coding tasks using the Claude Agent SDK.
-
-```bash
-bun run ~/Projects/agent-loop/src/index.ts "Build a REST API with user authentication"
-```
 
 ## How It Works
 
