@@ -1,28 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
   <defs>
-    <!-- Define the infinity loop path for motion -->
-    <path id="infinity" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100 M 130 100 C 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+    <!-- Continuous figure-8 infinity loop -->
+    <path id="infinity" d="M 130 100
+      C 130 60, 80 60, 80 100
+      C 80 140, 130 140, 130 100
+      C 130 60, 180 60, 180 100
+      C 180 140, 130 140, 130 100"/>
   </defs>
 
   <style>
-    /* Gentle pulse on the loop path */
     @keyframes loop-pulse {
       0%, 100% { stroke-opacity: 0.3; }
       50% { stroke-opacity: 0.6; }
     }
 
-    /* Particle glow */
     @keyframes glow {
-      0%, 100% { opacity: 0.7; }
-      50% { opacity: 1; }
+      0%, 100% { filter: drop-shadow(0 0 3px #8b5cf6); }
+      50% { filter: drop-shadow(0 0 8px #a78bfa); }
     }
 
     .loop-bg {
       fill: none;
       stroke: #8b5cf6;
-      stroke-width: 6;
+      stroke-width: 8;
       stroke-linecap: round;
-      stroke-opacity: 0.15;
+      stroke-opacity: 0.12;
     }
 
     .loop-main {
@@ -34,7 +36,7 @@
     }
 
     .particle {
-      animation: glow 1.5s ease-in-out infinite;
+      animation: glow 2s ease-in-out infinite;
     }
 
     .title { fill: #1f2328; }
@@ -46,40 +48,39 @@
     }
   </style>
 
-  <!-- Background glow loop -->
-  <path class="loop-bg" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100 C 130 100, 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+  <!-- Background glow -->
+  <use href="#infinity" class="loop-bg"/>
 
-  <!-- Main infinity loop - figure 8 -->
-  <path class="loop-main" d="M 80 100 C 80 55, 130 55, 130 100 C 130 145, 80 145, 80 100"/>
-  <path class="loop-main" d="M 130 100 C 130 55, 180 55, 180 100 C 180 145, 130 145, 130 100"/>
+  <!-- Main visible loop -->
+  <use href="#infinity" class="loop-main"/>
 
-  <!-- Animated particles on the loop -->
-  <circle class="particle" r="5" fill="#8b5cf6">
-    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto">
+  <!-- Particles flowing through the complete figure-8 -->
+  <circle class="particle" r="6" fill="#8b5cf6">
+    <animateMotion dur="4s" repeatCount="indefinite">
       <mpath href="#infinity"/>
     </animateMotion>
   </circle>
 
-  <circle class="particle" r="4" fill="#a78bfa" style="animation-delay: 0.5s;">
-    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="0.6s">
+  <circle class="particle" r="5" fill="#a78bfa" style="animation-delay: 0.3s;">
+    <animateMotion dur="4s" repeatCount="indefinite" begin="0.8s">
       <mpath href="#infinity"/>
     </animateMotion>
   </circle>
 
-  <circle class="particle" r="5" fill="#8b5cf6" style="animation-delay: 1s;">
-    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="1.2s">
+  <circle class="particle" r="6" fill="#8b5cf6" style="animation-delay: 0.6s;">
+    <animateMotion dur="4s" repeatCount="indefinite" begin="1.6s">
       <mpath href="#infinity"/>
     </animateMotion>
   </circle>
 
-  <circle class="particle" r="4" fill="#a78bfa" style="animation-delay: 1.5s;">
-    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="1.8s">
+  <circle class="particle" r="5" fill="#a78bfa" style="animation-delay: 0.9s;">
+    <animateMotion dur="4s" repeatCount="indefinite" begin="2.4s">
       <mpath href="#infinity"/>
     </animateMotion>
   </circle>
 
-  <circle class="particle" r="5" fill="#8b5cf6" style="animation-delay: 2s;">
-    <animateMotion dur="3s" repeatCount="indefinite" rotate="auto" begin="2.4s">
+  <circle class="particle" r="6" fill="#8b5cf6" style="animation-delay: 1.2s;">
+    <animateMotion dur="4s" repeatCount="indefinite" begin="3.2s">
       <mpath href="#infinity"/>
     </animateMotion>
   </circle>
