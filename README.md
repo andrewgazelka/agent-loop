@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Archived:** I prefer doing this raw inside Claude Code without the SDK—it's simpler and less maintenance.
+
 <p align="center">
   <img src=".github/assets/header.svg" alt="agent-loop" width="100%"/>
 </p>
