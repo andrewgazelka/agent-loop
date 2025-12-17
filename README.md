@@ -10,7 +10,7 @@
   <a href="https://www.nushell.sh/"><img src="https://img.shields.io/badge/Nushell-4E9A06?style=flat&logo=nushell&logoColor=white" alt="Nushell"></a>
 </p>
 
-Long-running agent harness for complex coding tasks using the Claude Agent SDK.
+Long-running agent harness for complex coding tasks using raw Claude Code (no SDK needed).
 
 ## How It Works
 
